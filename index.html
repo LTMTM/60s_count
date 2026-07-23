@@ -52,6 +52,13 @@
             from { color: #f59e0b; }
             to { color: #ef4444; }
         }
+        @keyframes bounceOnce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-bounce-once {
+            animation: bounceOnce 0.4s ease-out;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between pb-6">
@@ -74,6 +81,25 @@
 
     <!-- Main Mobile Container -->
     <main class="max-w-md mx-auto w-full px-4 pt-4 flex-1 flex flex-col gap-4">
+
+        <!-- Case Number Selector -->
+        <section class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200/80">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
+                <span><i class="fa-solid fa-id-card text-teal-600 mr-1"></i> 請選擇個案編號 (Case Number)</span>
+                <span id="selectedCaseBadge" class="text-xs bg-teal-100 text-teal-800 font-extrabold px-2.5 py-0.5 rounded-full">LON001</span>
+            </label>
+            <div class="flex items-center gap-2">
+                <button type="button" id="prevCaseBtn" title="上一個編號" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <select id="caseNumberSelect" class="flex-1 bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-2 px-3 rounded-xl text-base focus:outline-none focus:border-teal-500 transition cursor-pointer">
+                    <!-- Populated dynamically LON001 - LON334 -->
+                </select>
+                <button type="button" id="nextCaseBtn" title="下一個編號" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
 
         <!-- Category Selector -->
         <section class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200/80">
@@ -124,11 +150,11 @@
                 </div>
             </div>
 
-            <!-- Beep Audio Alert Legend -->
+            <!-- Audio Alert Legend -->
             <div class="flex items-center justify-center gap-4 text-xs text-slate-500 mt-1 mb-4">
                 <div class="flex items-center gap-1">
-                    <i class="fa-solid fa-volume-high text-amber-500"></i>
-                    <span>30秒提示音</span>
+                    <i class="fa-solid fa-hourglass-half text-amber-500"></i>
+                    <span>30秒畫面提示</span>
                 </div>
                 <div class="flex items-center gap-1">
                     <i class="fa-solid fa-circle-stop text-red-500"></i>
@@ -153,11 +179,11 @@
             </div>
         </section>
 
-        <!-- Recording Playback & Scoring Section -->
+        <!-- Recording Playback & Storage Section -->
         <section id="scoringSection" class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80 flex flex-col gap-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                    <i class="fa-solid fa-microphone-lines text-teal-600"></i> 錄音回放與個數統計
+                    <i class="fa-solid fa-microphone-lines text-teal-600"></i> 錄音回放與儲存
                 </h2>
                 <span id="recStatus" class="text-xs font-semibold text-slate-400">尚未錄音</span>
             </div>
@@ -166,70 +192,36 @@
             <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col gap-2">
                 <audio id="audioPlayback" controls class="w-full h-10 rounded-lg"></audio>
                 <div class="flex items-center justify-between px-1 pt-1">
-                    <span class="text-xs font-medium text-slate-500">播放速度調整：</span>
+                    <span class="text-xs font-medium text-slate-500">播放速度：</span>
                     <div class="flex gap-1.5">
-                        <button type="button" class="speed-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 text-slate-700 active:bg-teal-600 active:text-white" data-speed="0.75">0.75x (慢放)</button>
+                        <button type="button" class="speed-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 text-slate-700 active:bg-teal-600 active:text-white" data-speed="0.75">0.75x</button>
                         <button type="button" class="speed-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-teal-600 text-white" data-speed="1.0">1.0x (原速)</button>
-                        <button type="button" class="speed-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 text-slate-700 active:bg-teal-600 active:text-white" data-speed="1.25">1.25x (快速)</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2 pt-1">
-                    <button type="button" id="shareDriveBtn" disabled class="text-xs font-bold py-2.5 px-2 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center gap-1.5 transition opacity-50 cursor-not-allowed">
-                        <i class="fa-brands fa-google-drive text-emerald-600"></i>
-                        <span>存至 Google Drive</span>
-                    </button>
-                    <button type="button" id="downloadCurrentAudioBtn" disabled class="text-xs font-bold py-2.5 px-2 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center gap-1.5 transition opacity-50 cursor-not-allowed">
-                        <i class="fa-solid fa-download"></i>
-                        <span>下載至手機</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Score Inputs -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-teal-50/50 border border-teal-100 p-3 rounded-2xl flex flex-col items-center">
-                    <label class="text-xs font-bold text-teal-800 mb-1">前半段 (0 - 30 秒)</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="count-btn bg-white shadow-sm border border-slate-200 w-8 h-8 rounded-full font-bold text-lg flex items-center justify-center text-teal-700 active:bg-teal-100" onclick="adjustScore('scoreFirstHalf', -1)">-</button>
-                        <input type="number" id="scoreFirstHalf" value="0" min="0" class="w-12 text-center text-xl font-bold bg-transparent focus:outline-none text-slate-800">
-                        <button type="button" class="count-btn bg-white shadow-sm border border-slate-200 w-8 h-8 rounded-full font-bold text-lg flex items-center justify-center text-teal-700 active:bg-teal-100" onclick="adjustScore('scoreFirstHalf', 1)">+</button>
-                    </div>
-                </div>
-                <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-2xl flex flex-col items-center">
-                    <label class="text-xs font-bold text-amber-800 mb-1">後半段 (31 - 60 秒)</label>
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="count-btn bg-white shadow-sm border border-slate-200 w-8 h-8 rounded-full font-bold text-lg flex items-center justify-center text-amber-700 active:bg-amber-100" onclick="adjustScore('scoreSecondHalf', -1)">-</button>
-                        <input type="number" id="scoreSecondHalf" value="0" min="0" class="w-12 text-center text-xl font-bold bg-transparent focus:outline-none text-slate-800">
-                        <button type="button" class="count-btn bg-white shadow-sm border border-slate-200 w-8 h-8 rounded-full font-bold text-lg flex items-center justify-center text-amber-700 active:bg-amber-100" onclick="adjustScore('scoreSecondHalf', 1)">+</button>
+                        <button type="button" class="speed-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 text-slate-700 active:bg-teal-600 active:text-white" data-speed="1.25">1.25x</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Total Score Banner -->
-            <div class="bg-slate-900 text-white rounded-2xl p-3 flex justify-between items-center px-5">
-                <span class="text-sm font-semibold">60秒總計數量：</span>
-                <span id="totalScoreDisplay" class="text-2xl font-extrabold text-teal-400">0 <span class="text-xs text-slate-300">個</span></span>
-            </div>
-
-            <!-- Subject ID & Notes -->
-            <div class="space-y-2 text-xs">
-                <div>
-                    <label class="block font-semibold text-slate-600 mb-1">長者姓名或代號 (選填):</label>
-                    <input type="text" id="subjectId" placeholder="例如：張爺爺 / A001" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-500 text-sm">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-600 mb-1">觀察備註 (重複詞/離題等):</label>
-                    <input type="text" id="testNotes" placeholder="例如：重複說了2次蘋果，中間停頓較長..." class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-teal-500 text-sm">
-                </div>
-            </div>
-
-            <button id="saveRecordBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-floppy-disk text-teal-400"></i>
-                <span>儲存此筆測驗結果</span>
+            <button id="saveRecordBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up text-teal-400 text-base"></i>
+                <span>儲存並同步至 Google Drive</span>
             </button>
         </section>
 
     </main>
+
+    <!-- 30 Seconds Big Alert Modal -->
+    <div id="notice30Modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-xs w-full text-center space-y-3 border-2 border-amber-400 transform transition-all animate-bounce-once">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-800">⏰ 已過 30 秒！</h3>
+            <p class="text-sm font-semibold text-slate-600">測試時間已滿一半，請繼續回答</p>
+            <div class="pt-1 text-xs font-bold text-amber-600 bg-amber-50 rounded-full py-1.5 px-3 inline-flex items-center justify-center gap-1.5 border border-amber-200">
+                <i class="fa-solid fa-spinner animate-spin"></i> <span>5 秒後將自動關閉</span>
+            </div>
+        </div>
+    </div>
 
     <!-- History Modal -->
     <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center hidden">
@@ -237,7 +229,7 @@
             <!-- Modal Header -->
             <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-teal-600"></i> 測驗歷史紀錄
+                    <i class="fa-solid fa-clock-rotate-left text-teal-600"></i> 測驗歷史紀錄與雲端設定
                 </h3>
                 <button id="closeHistoryBtn" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
@@ -256,8 +248,11 @@
                         <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
                     </summary>
                     <div class="pt-2 space-y-2">
-                        <p class="text-[11px] text-slate-500 leading-tight">已綁定您的 Google Apps Script 網址。每次點擊「儲存」時，音檔與成績將全自動同步上傳至 Google Drive：</p>
-                        <input type="url" id="gasUrlInput" value="https://script.google.com/macros/s/AKfycbyrWkLQYo_xgv0BDsfzeQDEW4VqJijyQxKoxB3rJU1X1tCMtqWwgojNmCVxDrKjiT6H/exec" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:border-teal-500">
+                        <label class="block text-[11px] font-semibold text-slate-600">目標資料夾名稱：</label>
+                        <input type="text" id="targetFolderName" value="LON_60s" class="w-full px-2.5 py-1 rounded-lg border border-slate-300 text-xs font-mono focus:outline-none focus:border-teal-500 mb-1">
+                        
+                        <label class="block text-[11px] font-semibold text-slate-600">Google Apps Script Web App 網址：</label>
+                        <input type="url" id="gasUrlInput" value="" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-mono focus:outline-none focus:border-teal-500">
                     </div>
                 </details>
             </div>
@@ -285,6 +280,58 @@
         const DB_NAME = 'VerbalFluencyAudioDB';
         const DB_VERSION = 1;
         const STORE_NAME = 'audioFiles';
+
+        let currentCaseNumber = 'LON001';
+        const caseNumberSelect = document.getElementById('caseNumberSelect');
+        const selectedCaseBadge = document.getElementById('selectedCaseBadge');
+        const prevCaseBtn = document.getElementById('prevCaseBtn');
+        const nextCaseBtn = document.getElementById('nextCaseBtn');
+
+        function initCaseNumbers() {
+            if (!caseNumberSelect) return;
+            caseNumberSelect.innerHTML = '';
+            for (let i = 1; i <= 334; i++) {
+                const numStr = `LON${String(i).padStart(3, '0')}`;
+                const opt = document.createElement('option');
+                opt.value = numStr;
+                opt.textContent = numStr;
+                caseNumberSelect.appendChild(opt);
+            }
+            const saved = localStorage.getItem('last_selected_case');
+            if (saved && caseNumberSelect.querySelector(`option[value="${saved}"]`)) {
+                caseNumberSelect.value = saved;
+                currentCaseNumber = saved;
+            } else {
+                currentCaseNumber = 'LON001';
+            }
+            updateCaseBadge();
+        }
+
+        function updateCaseBadge() {
+            currentCaseNumber = caseNumberSelect.value;
+            if (selectedCaseBadge) selectedCaseBadge.textContent = currentCaseNumber;
+            localStorage.setItem('last_selected_case', currentCaseNumber);
+        }
+
+        if (caseNumberSelect) {
+            caseNumberSelect.addEventListener('change', updateCaseBadge);
+        }
+        if (prevCaseBtn) {
+            prevCaseBtn.addEventListener('click', () => {
+                if (caseNumberSelect.selectedIndex > 0) {
+                    caseNumberSelect.selectedIndex--;
+                    updateCaseBadge();
+                }
+            });
+        }
+        if (nextCaseBtn) {
+            nextCaseBtn.addEventListener('click', () => {
+                if (caseNumberSelect.selectedIndex < caseNumberSelect.options.length - 1) {
+                    caseNumberSelect.selectedIndex++;
+                    updateCaseBadge();
+                }
+            });
+        }
 
         function initIndexedDB() {
             return new Promise((resolve, reject) => {
@@ -335,7 +382,6 @@
             });
         }
 
-        // --- Web Audio API Synthesizer (Zero External Files needed for Beeps) ---
         let audioCtx = null;
 
         function initAudioContext() {
@@ -348,19 +394,11 @@
             }
         }
 
-        // Play Beep Tone for Alerts
         function playBeepTone(type) {
             initAudioContext();
             if (!audioCtx) return;
 
-            if (type === 'halfway') {
-                // 30 Seconds Alert: Double pleasant mid-high beep (880Hz A5 tone)
-                playToneSequence([
-                    { freq: 880, duration: 0.15, delay: 0 },
-                    { freq: 880, duration: 0.25, delay: 0.2 }
-                ]);
-            } else if (type === 'end') {
-                // 60 Seconds End Alert: Distinct triple chime ending (C5 -> E5 -> G5)
+            if (type === 'end') {
                 playToneSequence([
                     { freq: 523.25, duration: 0.15, delay: 0 },
                     { freq: 659.25, duration: 0.15, delay: 0.18 },
@@ -394,13 +432,15 @@
             });
         }
 
-        // --- State Variables ---
         const TOTAL_TIME = 60.0;
         let timeRemaining = TOTAL_TIME;
         let timerInterval = null;
         let isRunning = false;
         let currentCategory = '動物';
+        const categories = ['動物', '水果', '蔬菜'];
         let beep30Triggered = false;
+        let notice30Timeout = null;
+        let autoUploadOnFinish = false;
 
         // MediaRecorder Variables
         let mediaRecorder = null;
@@ -421,16 +461,11 @@
 
         const audioPlayback = document.getElementById('audioPlayback');
         const recStatus = document.getElementById('recStatus');
-        const downloadCurrentAudioBtn = document.getElementById('downloadCurrentAudioBtn');
-        const shareDriveBtn = document.getElementById('shareDriveBtn');
         const gasUrlInput = document.getElementById('gasUrlInput');
-        const scoreFirstHalf = document.getElementById('scoreFirstHalf');
-        const scoreSecondHalf = document.getElementById('scoreSecondHalf');
-        const totalScoreDisplay = document.getElementById('totalScoreDisplay');
-        const subjectIdInput = document.getElementById('subjectId');
-        const testNotesInput = document.getElementById('testNotes');
+        const targetFolderNameInput = document.getElementById('targetFolderName');
         const saveRecordBtn = document.getElementById('saveRecordBtn');
 
+        const notice30Modal = document.getElementById('notice30Modal');
         const historyModal = document.getElementById('historyModal');
         const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
         const closeHistoryBtn = document.getElementById('closeHistoryBtn');
@@ -438,31 +473,43 @@
         const clearHistoryBtn = document.getElementById('clearHistoryBtn');
         const exportCsvBtn = document.getElementById('exportCsvBtn');
 
-        // Circle Progress Math
-        const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 44; // r = 44
+        const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 44;
 
         function updateTimerUI() {
             timerDisplay.textContent = timeRemaining.toFixed(1);
             
-            // Calculate progress fraction (1 down to 0)
             const fraction = timeRemaining / TOTAL_TIME;
             const strokeDashoffset = CIRCLE_CIRCUMFERENCE * (1 - fraction);
             progressCircle.style.strokeDashoffset = strokeDashoffset;
 
-            // Color shift when close to end
             if (timeRemaining <= 10) {
-                progressCircle.setAttribute('stroke', '#ef4444'); // Red
+                progressCircle.setAttribute('stroke', '#ef4444');
                 timerDisplay.classList.add('timer-warning');
             } else if (timeRemaining <= 30) {
-                progressCircle.setAttribute('stroke', '#f59e0b'); // Amber
+                progressCircle.setAttribute('stroke', '#f59e0b');
                 timerDisplay.classList.remove('timer-warning');
             } else {
-                progressCircle.setAttribute('stroke', '#14b8a6'); // Teal
+                progressCircle.setAttribute('stroke', '#14b8a6');
                 timerDisplay.classList.remove('timer-warning');
             }
         }
 
-        // Microphone & MediaRecorder setup
+        function switchToNextCategory() {
+            const currentIndex = categories.indexOf(currentCategory);
+            const nextIndex = (currentIndex + 1) % categories.length;
+            currentCategory = categories[nextIndex];
+
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.category === currentCategory) {
+                    btn.classList.add('active', 'bg-teal-50', 'border-teal-500', 'text-teal-700');
+                    btn.classList.remove('bg-slate-50', 'border-transparent', 'text-slate-600');
+                } else {
+                    btn.classList.remove('active', 'bg-teal-50', 'border-teal-500', 'text-teal-700');
+                    btn.classList.add('bg-slate-50', 'border-transparent', 'text-slate-600');
+                }
+            });
+        }
+
         async function startRecording() {
             audioChunks = [];
             try {
@@ -475,7 +522,7 @@
                     }
                 };
 
-                mediaRecorder.onstop = () => {
+                mediaRecorder.onstop = async () => {
                     recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     if (recordedAudioUrl) {
                         URL.revokeObjectURL(recordedAudioUrl);
@@ -485,12 +532,19 @@
                     recStatus.textContent = "錄音已完成";
                     recStatus.className = "text-xs font-semibold text-teal-600";
 
-                    // Enable buttons
-                    downloadCurrentAudioBtn.disabled = false;
-                    downloadCurrentAudioBtn.className = "text-xs font-bold py-2.5 px-2 rounded-xl bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 flex items-center justify-center gap-1.5 transition";
-
-                    shareDriveBtn.disabled = false;
-                    shareDriveBtn.className = "text-xs font-bold py-2.5 px-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 flex items-center justify-center gap-1.5 transition";
+                    if (autoUploadOnFinish) {
+                        autoUploadOnFinish = false;
+                        await autoSaveAndUpload();
+                        
+                        // 自動切換到下一個種類
+                        switchToNextCategory();
+                        
+                        timeRemaining = TOTAL_TIME;
+                        updateTimerUI();
+                        
+                        statusBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 mb-2";
+                        statusText.textContent = `準備就緒 (已自動切換至：${currentCategory})`;
+                    }
                 };
 
                 mediaRecorder.start();
@@ -506,15 +560,21 @@
         function stopRecording() {
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
-                // Stop microphone track to release mic icon
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
             }
         }
 
-        // Start Test Action
+        function show30sNoticeModal() {
+            if (!notice30Modal) return;
+            notice30Modal.classList.remove('hidden');
+            if (notice30Timeout) clearTimeout(notice30Timeout);
+            notice30Timeout = setTimeout(() => {
+                notice30Modal.classList.add('hidden');
+            }, 5000);
+        }
+
         function startTest() {
             initAudioContext();
-
             if (isRunning) return;
 
             isRunning = true;
@@ -526,10 +586,10 @@
             statusBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 pulse-ring mb-2";
             statusText.textContent = "測試與錄音中...";
 
-            // Start recording if beginning
             if (timeRemaining === TOTAL_TIME) {
                 beep30Triggered = false;
                 beep30Notice.classList.add('hidden');
+                if (notice30Modal) notice30Modal.classList.add('hidden');
                 startRecording();
             }
 
@@ -539,15 +599,12 @@
                 const elapsedSeconds = (Date.now() - startTime) / 1000;
                 timeRemaining = Math.max(0, TOTAL_TIME - elapsedSeconds);
 
-                // Check 30-Second Mark Beep
                 if (timeRemaining <= 30.0 && !beep30Triggered) {
                     beep30Triggered = true;
-                    playBeepTone('halfway');
+                    show30sNoticeModal();
                     beep30Notice.classList.remove('hidden');
-                    showToast('🔔 30秒響聲提示！');
                 }
 
-                // Check 60-Second End Mark Beep
                 if (timeRemaining <= 0) {
                     finishTest();
                 }
@@ -577,26 +634,32 @@
             isRunning = false;
 
             playBeepTone('end');
+            autoUploadOnFinish = true;
             stopRecording();
+
+            if (notice30Timeout) clearTimeout(notice30Timeout);
+            if (notice30Modal) notice30Modal.classList.add('hidden');
 
             startBtn.disabled = false;
             startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            startBtnText.textContent = "重新開始測試";
+            startBtnText.textContent = "開始測試與錄音";
             pauseBtn.disabled = true;
             pauseBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
             statusBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 mb-2";
             statusText.textContent = "測試已結束 (60秒)";
-
-            showToast('🎉 測試完成！請收聽錄音並統計數量');
         }
 
         function resetTest() {
             clearInterval(timerInterval);
+            autoUploadOnFinish = false;
             stopRecording();
             isRunning = false;
             timeRemaining = TOTAL_TIME;
             beep30Triggered = false;
+
+            if (notice30Timeout) clearTimeout(notice30Timeout);
+            if (notice30Modal) notice30Modal.classList.add('hidden');
 
             startBtn.disabled = false;
             startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -612,89 +675,22 @@
             recStatus.className = "text-xs font-semibold text-slate-400";
             audioPlayback.src = "";
 
-            downloadCurrentAudioBtn.disabled = true;
-            downloadCurrentAudioBtn.className = "text-xs font-bold py-2.5 px-2 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center gap-1.5 transition opacity-50 cursor-not-allowed";
-
-            shareDriveBtn.disabled = true;
-            shareDriveBtn.className = "text-xs font-bold py-2.5 px-2 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center gap-1.5 transition opacity-50 cursor-not-allowed";
-
-            scoreFirstHalf.value = 0;
-            scoreSecondHalf.value = 0;
-            calculateTotalScore();
-
             updateTimerUI();
         }
 
-        // Download current recording handler
-        downloadCurrentAudioBtn.addEventListener('click', () => {
-            if (!recordedAudioBlob) return;
-            const a = document.createElement('a');
-            a.href = recordedAudioUrl;
-            const subject = subjectIdInput.value.trim() || '未命名長者';
-            const dateStr = new Date().toISOString().slice(0, 10);
-            a.download = `${subject}_${currentCategory}_言語測試_${dateStr}.webm`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            showToast('⬇️ 已開始下載錄音檔到手機');
-        });
-
-        // Google Drive Share / Web Share API Handler
-        async function shareToGoogleDrive(blob, filename) {
-            if (!blob) {
-                showToast('❌ 尚無錄音可分享');
-                return;
-            }
-
-            const file = new File([blob], filename, { type: 'audio/webm' });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: '長者言語流暢度測試錄音',
-                        text: `長者測驗錄音檔：${filename}`
-                    });
-                    showToast('📤 已喚起分享選單，請選擇 Google 雲端硬碟');
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        console.error('Share failed:', err);
-                        showToast('❌ 分享失敗，已轉為一般下載');
-                        downloadCurrentAudioBtn.click();
-                    }
-                }
-            } else {
-                showToast('ℹ️ 裝置未支援直接分享，將為您下載音檔');
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-        }
-
-        shareDriveBtn.addEventListener('click', () => {
-            const subject = subjectIdInput.value.trim() || '未命名長者';
-            const dateStr = new Date().toISOString().slice(0, 10);
-            const filename = `${subject}_${currentCategory}_言語測試_${dateStr}.webm`;
-            shareToGoogleDrive(recordedAudioBlob, filename);
-        });
-
-        // GAS Auto Sync logic when saving record
-        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyrWkLQYo_xgv0BDsfzeQDEW4VqJijyQxKoxB3rJU1X1tCMtqWwgojNmCVxDrKjiT6H/exec';
-        
-        if (!localStorage.getItem('gas_url')) {
-            localStorage.setItem('gas_url', DEFAULT_GAS_URL);
-        }
-        gasUrlInput.value = localStorage.getItem('gas_url') || DEFAULT_GAS_URL;
+        gasUrlInput.value = localStorage.getItem('gas_url') || '';
+        targetFolderNameInput.value = localStorage.getItem('gas_folder') || 'LON_60s';
 
         gasUrlInput.addEventListener('change', () => {
             localStorage.setItem('gas_url', gasUrlInput.value.trim());
             showToast('💾 已儲存 Google Apps Script 網址');
         });
 
-        // Helper to convert Blob to Base64 for Google Drive Sync
+        targetFolderNameInput.addEventListener('change', () => {
+            localStorage.setItem('gas_folder', targetFolderNameInput.value.trim() || 'LON_60s');
+            showToast('📁 已儲存雲端資料夾名稱');
+        });
+
         function blobToBase64(blob) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -704,29 +700,31 @@
             });
         }
 
-        // Automatic background upload to Google Apps Script (Google Drive)
-        async function uploadToGAS(record, audioBlob) {
+        async function uploadToGoogleDrive(recordData, audioBlob) {
             const gasUrl = gasUrlInput.value.trim() || localStorage.getItem('gas_url');
-            if (!gasUrl) return;
+            const folderName = targetFolderNameInput.value.trim() || 'LON_60s';
+
+            if (!gasUrl) {
+                showToast('⚠️ 請先在右上角「歷史紀錄」填寫 Google Web App 網址');
+                historyModal.classList.remove('hidden');
+                return false;
+            }
 
             try {
-                showToast('☁️ 正在背景自動同步至 Google Drive...');
+                showToast(`☁️ 正在上傳至 Google Drive (${folderName})...`);
                 let audioBase64 = null;
                 if (audioBlob) {
                     audioBase64 = await blobToBase64(audioBlob);
                 }
 
                 const dateStr = new Date().toISOString().slice(0, 10);
-                const fileName = `${record.subject}_${record.category}_言語測試_${dateStr}.webm`;
+                const fileName = `${recordData.caseNumber || 'LON'}_${recordData.category}_${dateStr}.webm`;
 
                 const payload = {
-                    subject: record.subject,
-                    category: record.category,
-                    firstHalf: record.firstHalf,
-                    secondHalf: record.secondHalf,
-                    total: record.total,
-                    notes: record.notes,
-                    date: record.date,
+                    folderName: folderName,
+                    caseNumber: recordData.caseNumber || currentCaseNumber,
+                    category: recordData.category,
+                    date: recordData.date,
                     fileName: fileName,
                     audioBase64: audioBase64
                 };
@@ -740,14 +738,15 @@
                     body: JSON.stringify(payload)
                 });
 
-                showToast('✅ 已全自動同步至 Google Drive！');
+                showToast(`✅ 已順利同步上傳至 Google Drive【${folderName}】資料夾！`);
+                return true;
             } catch (err) {
-                console.error('GAS Sync failed:', err);
-                showToast('⚠️ 雲端同步失敗，已儲存於本機歷史紀錄');
+                console.error('GAS Upload Error:', err);
+                showToast('❌ 上傳失敗，請檢查網址設定');
+                return false;
             }
         }
 
-        // LocalStorage & IndexedDB History Storage
         const STORAGE_KEY = 'verbal_fluency_records_v1';
 
         function getRecords() {
@@ -755,27 +754,6 @@
             return data ? JSON.parse(data) : [];
         }
 
-        // Calculate and update total score
-        function calculateTotalScore() {
-            const v1 = parseInt(scoreFirstHalf.value) || 0;
-            const v2 = parseInt(scoreSecondHalf.value) || 0;
-            totalScoreDisplay.innerHTML = `${v1 + v2} <span class="text-xs text-slate-300">個</span>`;
-        }
-
-        // Adjust score handler for +/- buttons
-        window.adjustScore = function(id, delta) {
-            const input = document.getElementById(id);
-            if (!input) return;
-            let val = parseInt(input.value) || 0;
-            val = Math.max(0, val + delta);
-            input.value = val;
-            calculateTotalScore();
-        };
-
-        scoreFirstHalf.addEventListener('input', calculateTotalScore);
-        scoreSecondHalf.addEventListener('input', calculateTotalScore);
-
-        // Category Selection
         document.querySelectorAll('.cat-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.cat-btn').forEach(b => {
@@ -788,7 +766,6 @@
             });
         });
 
-        // Speed Buttons Control
         document.querySelectorAll('.speed-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const speed = parseFloat(btn.dataset.speed);
@@ -802,7 +779,6 @@
             });
         });
 
-        // Render History Items
         async function renderHistoryList() {
             const records = getRecords();
             historyList.innerHTML = '';
@@ -832,24 +808,17 @@
 
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <div>
-                            <span class="font-bold text-slate-800 text-sm">${item.subject}</span>
-                            <span class="ml-2 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-semibold text-[11px]">${item.category}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-extrabold text-teal-800 bg-teal-100 px-2 py-0.5 rounded-lg text-xs">${item.caseNumber || '無編號'}</span>
+                            <span class="font-bold text-slate-800 text-sm">${item.category}測試</span>
                         </div>
                         <span class="text-slate-400 text-[11px]">${item.date}</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-1 bg-white p-2 rounded-xl border border-slate-100 text-center font-medium">
-                        <div>前半段: <span class="font-bold text-teal-600">${item.firstHalf}</span></div>
-                        <div>後半段: <span class="font-bold text-amber-600">${item.secondHalf}</span></div>
-                        <div>總計: <span class="font-bold text-slate-800">${item.total}</span></div>
-                    </div>
-                    ${item.notes ? `<div class="text-slate-500 bg-white p-2 rounded-xl border border-slate-100"><i class="fa-regular fa-note-sticky text-slate-400 mr-1"></i>${item.notes}</div>` : ''}
                     ${audioHtml}
                 `;
                 historyList.appendChild(card);
             }
 
-            // Bind playback buttons inside history cards
             document.querySelectorAll('.play-hist-audio').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const id = parseInt(btn.dataset.id);
@@ -871,7 +840,6 @@
             });
         }
 
-        // Clear History Records
         async function clearHistory() {
             localStorage.removeItem(STORAGE_KEY);
             await clearAllAudioBlobs();
@@ -879,17 +847,15 @@
             showToast('🗑️ 已清空歷史紀錄');
         }
 
-        // Export Records to CSV
         function exportCsv() {
             const records = getRecords();
             if (records.length === 0) {
                 showToast('❌ 目前無紀錄可匯出');
                 return;
             }
-            let csvContent = "\uFEFF測驗時間,長者姓名代號,測驗類別,前半段(0-30s),後半段(31-60s),總計個數,備註\n";
+            let csvContent = "\uFEFF測驗時間,個案編號,測驗類別\n";
             records.forEach(r => {
-                const notes = (r.notes || '').replace(/"/g, '""');
-                csvContent += `"${r.date}","${r.subject}","${r.category}",${r.firstHalf},${r.secondHalf},${r.total},"${notes}"\n`;
+                csvContent += `"${r.date}","${r.caseNumber || ''}","${r.category}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -903,49 +869,74 @@
             showToast('📊 已匯出 CSV 檔案');
         }
 
-        async function saveRecord() {
-            const firstHalf = parseInt(scoreFirstHalf.value) || 0;
-            const secondHalf = parseInt(scoreSecondHalf.value) || 0;
-            const total = firstHalf + secondHalf;
-            const subject = subjectIdInput.value.trim() || '未受測者';
-            const notes = testNotesInput.value.trim();
+        async function autoSaveAndUpload() {
+            if (!recordedAudioBlob) return;
+
             const recordId = Date.now();
+            const dateStr = new Date().toLocaleString('zh-TW', { hour12: false });
 
             const record = {
                 id: recordId,
-                date: new Date().toLocaleString('zh-TW', { hour12: false }),
+                date: dateStr,
+                caseNumber: currentCaseNumber,
                 category: currentCategory,
-                subject: subject,
-                firstHalf: firstHalf,
-                secondHalf: secondHalf,
-                total: total,
-                notes: notes,
-                hasAudio: !!recordedAudioBlob
+                hasAudio: true
             };
 
-            if (recordedAudioBlob) {
-                try {
-                    await saveAudioBlob(recordId, recordedAudioBlob);
-                } catch (e) {
-                    console.error('IndexedDB save error:', e);
-                }
+            try {
+                await saveAudioBlob(recordId, recordedAudioBlob);
+            } catch (e) {
+                console.error('IndexedDB save error:', e);
             }
 
             const records = getRecords();
             records.unshift(record);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 
-            showToast('✅ 成功儲存紀錄與錄音檔！');
             renderHistoryList();
 
-            // Trigger Google Apps Script Background Sync
-            const gasUrl = gasUrlInput.value.trim() || localStorage.getItem('gas_url');
-            if (gasUrl) {
-                uploadToGAS(record, recordedAudioBlob);
-            }
+            showToast(`🎉 60秒測試結束！已自動儲存 (${currentCaseNumber} - ${currentCategory})`);
+            
+            // 自動背景同步 Google Drive
+            uploadToGoogleDrive(record, recordedAudioBlob);
+
+            return record;
         }
 
-        // Toast Notification Helper
+        async function saveRecord() {
+            if (!recordedAudioBlob) {
+                showToast('⚠️ 目前沒有可儲存的錄音');
+                return;
+            }
+
+            const recordId = Date.now();
+            const dateStr = new Date().toLocaleString('zh-TW', { hour12: false });
+
+            const record = {
+                id: recordId,
+                date: dateStr,
+                caseNumber: currentCaseNumber,
+                category: currentCategory,
+                hasAudio: true
+            };
+
+            try {
+                await saveAudioBlob(recordId, recordedAudioBlob);
+            } catch (e) {
+                console.error('IndexedDB save error:', e);
+            }
+
+            const records = getRecords();
+            records.unshift(record);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+
+            showToast(`✅ 成功儲存紀錄！(${currentCaseNumber})`);
+            renderHistoryList();
+
+            // Trigger Google Drive Upload
+            uploadToGoogleDrive(record, recordedAudioBlob);
+        }
+
         function showToast(message) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
@@ -956,7 +947,6 @@
             }, 2500);
         }
 
-        // Event Listeners
         startBtn.addEventListener('click', startTest);
         pauseBtn.addEventListener('click', pauseTest);
         resetBtn.addEventListener('click', resetTest);
@@ -972,7 +962,8 @@
         clearHistoryBtn.addEventListener('click', clearHistory);
         exportCsvBtn.addEventListener('click', exportCsv);
 
-        // Initial setup
+        // Initialize Case Numbers & UI
+        initCaseNumbers();
         updateTimerUI();
     </script>
 </body>
